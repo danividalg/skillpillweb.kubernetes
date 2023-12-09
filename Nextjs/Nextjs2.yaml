@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: nextjs
+imagePullSecrets:
+  - name: regcred
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skillpillweb-nextjs
+  namespace: nextjs
+  labels:
+    app: nextjs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nextjs
+  template:
+    metadata:
+      labels:
+        app: nextjs
+    spec:
+      containers:
+      - name: nextjs
+        image: <account>/<repo>:skillpillweb-nextjs
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 443
+          name: nextjs-port
+        - containerPort: 80
+          name: nextjs-port-80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: nextjs-port
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          periodSeconds: 2
+          failureThreshold: 2
+        volumeMounts:
+          - name: env-config
+            mountPath: "/app/.env"
+            subPath: .env
+            readOnly: true
+          - name: ca-cert
+            mountPath: "/app/ca.cert.crt"
+            subPath: ca.cert.crt
+            readOnly: true
+          - name: nextjs-cert
+            mountPath: "/app/frontend-server-fullchain.cert.pem"
+            subPath: frontend-server-fullchain.cert.pem
+            readOnly: true
+          - name: nextjs-key-cert
+            mountPath: "/app/frontend-server.key.pem"
+            subPath: frontend-server.key.pem
+            readOnly: true
+      volumes:
+      - name: env-config
+        secret:
+          secretName: nextjs-env-config
+          items:
+          - key: .env
+            path: .env
+      - name: ca-cert
+        secret:
+          secretName: ca-cert
+          items:
+          - key: ca.cert.crt
+            path: ca.cert.crt
+      - name: nextjs-cert
+        secret:
+          secretName: nextjs-cert
+          items:
+          - key: frontend-server-fullchain.cert.pem
+            path: frontend-server-fullchain.cert.pem
+      - name: nextjs-key-cert
+        secret:
+          secretName: nextjs-cert
+          items:
+          - key: frontend-server.key.pem
+            path: frontend-server.key.pem
+      imagePullSecrets:
+      - name: regcred
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: skillpillweb-nextjs-service
+  namespace: nextjs
+spec:
+  type: ClusterIP
+  selector:
+    app: nextjs
+  ports:
+    - name: https-nextjs-service-port
+      protocol: TCP
+      port: 443
+      targetPort: nextjs-port
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: skillpillweb-nextjs-service-80
+  namespace: nextjs
+spec:
+  type: ClusterIP
+  selector:
+    app: nextjs
+  ports:
+    - name: http-nextjs-service-port-80
+      protocol: TCP
+      port: 80
+      targetPort: nextjs-port-80
