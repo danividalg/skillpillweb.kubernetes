@@ -103,6 +103,11 @@ spec:
       protocol: TCP
       port: 443
       targetPort: nextjs-port
+  externalIPs:
+    - X.X.X.W
+    - X.X.X.X
+    - X.X.X.Y
+    - X.X.X.Z
 
 ---
 
@@ -120,3 +125,8 @@ spec:
       protocol: TCP
       port: 80
       targetPort: nextjs-port-80
+  externalIPs:
+    - X.X.X.W
+    - X.X.X.X
+    - X.X.X.Y
+    - X.X.X.Z

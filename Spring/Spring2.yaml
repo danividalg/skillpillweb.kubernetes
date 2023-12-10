@@ -81,3 +81,8 @@ spec:
       protocol: TCP
       port: 3738
       targetPort: spring-port
+  externalIPs:
+    - X.X.X.W
+    - X.X.X.X
+    - X.X.X.Y
+    - X.X.X.Z
